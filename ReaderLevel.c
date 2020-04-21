@@ -1,32 +1,4 @@
-#include "Header.h"
-
-int ATOI(char c)
-{
-	switch (c)
-	{
-	case '1':
-		return 1;
-	case '2':
-		return 2;
-	case '3':
-		return 3;
-	case '4':
-		return 4;
-	case '5':
-		return 5;
-	case '6':
-		return 6;
-	case '7':
-		return 7;
-	case '8':
-		return 8;
-	case '9':
-		return 9;
-	default:
-		break;
-	}
-	return 0;
-}
+#include "Game.h"
 
 BLOCK** Level(int NumberLevel)
 {
@@ -48,23 +20,23 @@ BLOCK** Level(int NumberLevel)
 		{
 			fseek(fp, 2, SEEK_CUR);
 			c = (char)fgetc(fp);
-			if (ATOI(c) == NumberLevel)
+			if (atoi(&c) == NumberLevel)
 			{
 				fseek(fp, 3, SEEK_CUR);
 				c = (char)fgetc(fp);
-				y = ATOI(c);
+				y = atoi(&c);
 				fseek(fp, 1, SEEK_CUR);
 				c = (char)fgetc(fp);
-				x = ATOI(c);
+				x = atoi(&c);
 				fseek(fp, 3, SEEK_CUR);
 				break;
 			}
 			continue;
 		}
-		
+
 	}
 
-	
+
 
 	Block = (BLOCK**)malloc(y * sizeof(BLOCK));
 	if (Block == NULL)
@@ -128,7 +100,7 @@ BLOCK** Level(int NumberLevel)
 			i++;
 			j = 0;
 		}
-			
+
 	}
 
 	for (int i = 0; i < y; i++)
