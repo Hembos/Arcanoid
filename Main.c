@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
-
-#include "Header.h"
+#include "Game.h"
 
 char szClassName[] = "Window1";
 HWND hWnd;
@@ -9,48 +8,39 @@ HDC hdc;
 HDC memDC;
 int click = 0;
 int NumberLevel = 1;
-
-PLAYER Player;
-BALL Ball;
-GAME Game;
-MENU Menu;
-BONUS Bon;
-BLOCK** Block;
+int GameState = 0;
 HBITMAP memBM;
 BOOL isDrawing = TRUE;
-HBITMAP hbGameOver;
-HBITMAP hbMenuStart;
-HBITMAP hbMenuExit;
-HBITMAP hbWin;
+SCENE sc;
+
 
 LRESULT CALLBACK WndProc(HWND, UINT, UINT, LONG);
 
 ATOM registerMyClass(HINSTANCE hInstance);
 
 int createMyWindow(HINSTANCE hInstance, int nCmdShow);
-void Bonus();
-//////////////////////////////////////
+
+void InitGame()
+{
+	sc.Player.Position.x = 240;
+	sc.Player.Position.y = 400;
+	sc.Player.Weigth = 30;
+	sc.Player.Live = 3;
+	sc.Ball.Position.x = 240;
+	sc.Ball.Position.y = 380;
+	sc.Ball.radius = 10;
+	sc.Ball.NormalSpeed = 3;
+	sc.Ball.State = FALSE;
+	sc.Bon.AdWall = FALSE;
+
+	sc.Block = Level(NumberLevel);
+}
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpszCmdParam, _In_ int nCmdShow)
 {
-	Player.Position.x = 240;
-	Player.Position.y = 400;
-	Player.Weigth = 30;
-	Player.Live = 3;
-	Ball.Position.x = 240;
-	Ball.Position.y = 380;
-	Ball.radius = 10;
-	Ball.NormalSpeed = 3;
-	Ball.State = FALSE;
-	Game.GameStart = FALSE;
-	Game.GameOver = FALSE;
-	Game.GameWin = FALSE;
-	Menu.CountButton = 2;
-	Menu.CurButton = 0;
-	Bon.AdWall = FALSE;
-
-	Block = Level(NumberLevel);
-	
+	InitGame();
+	sc.Menu.CountButton = 2;
+	sc.Menu.CurButton = 0;
 	createMyWindow(hInstance, nCmdShow);
 
 	MSG msg;
@@ -60,359 +50,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 		DispatchMessage(&msg);
 	}
 	return msg.wParam;
-}
-
-void Motion()
-{
-	if (Ball.State == FALSE)
-	{
-		Ball.Position.x = Player.Position.x;
-	}
-	else
-	{
-		if (Ball.Position.x + Ball.Speed.x > 470 - Ball.radius || Ball.Position.x + Ball.Speed.x < Ball.radius)
-		{
-			Ball.Speed.x = -Ball.Speed.x;
-		}
-		if (Ball.Position.y + Ball.Speed.y > 440 - Ball.radius || Ball.Position.y + Ball.Speed.y < Ball.radius || Bon.AdWall == TRUE && Ball.Position.y + Ball.Speed.y > 420 - Ball.radius)
-		{
-			Ball.Speed.y = -Ball.Speed.y;
-		}
-		if (Ball.Position.y + Ball.Speed.y >= Player.Position.y - 10 - Ball.radius
-			&& Ball.Position.x - Ball.radius <= Player.Position.x + Player.Weigth && Ball.Position.x + Ball.radius >= Player.Position.x - Player.Weigth)
-		{
-			if (Ball.Position.x > Player.Position.x&& Ball.Position.x <= Player.Position.x + Player.Weigth / 5)
-			{
-				Ball.Speed.x = 0.26;
-				Ball.Speed.y = -0.97;
-			}
-			if (Ball.Position.x > Player.Position.x + Player.Weigth / 5 && Ball.Position.x <= Player.Position.x + Player.Weigth / 5 * 2)
-			{
-				Ball.Speed.x = 0.5;
-				Ball.Speed.y = -0.87;
-			}
-			if (Ball.Position.x > Player.Position.x + Player.Weigth / 5 * 2 && Ball.Position.x <= Player.Position.x + Player.Weigth / 5 * 3)
-			{
-				Ball.Speed.x = 0.71;
-				Ball.Speed.y = -0.71;
-			}
-			if (Ball.Position.x > Player.Position.x + Player.Weigth / 5 * 3 && Ball.Position.x <= Player.Position.x + Player.Weigth / 5 * 4)
-			{
-				Ball.Speed.x = 0.87;
-				Ball.Speed.y = -0.5;
-			}
-			if (Ball.Position.x > Player.Position.x + Player.Weigth / 5 * 4 && Ball.Position.x - Ball.radius <= Player.Position.x + Player.Weigth)
-			{
-				Ball.Speed.x = 0.97;
-				Ball.Speed.y = -0.26;
-			}
-
-			if (Ball.Position.x < Player.Position.x && Ball.Position.x >= Player.Position.x - Player.Weigth / 5)
-			{
-				Ball.Speed.x = -0.26;
-				Ball.Speed.y = -0.97;
-			}
-			if (Ball.Position.x < Player.Position.x - Player.Weigth / 5 && Ball.Position.x >= Player.Position.x - Player.Weigth / 5 * 2)
-			{
-				Ball.Speed.x = -0.5;
-				Ball.Speed.y = -0.87;
-			}
-			if (Ball.Position.x < Player.Position.x - Player.Weigth / 5 * 2 && Ball.Position.x >= Player.Position.x - Player.Weigth / 5 * 3)
-			{
-				Ball.Speed.x = -0.71;
-				Ball.Speed.y = -0.71;
-			}
-			if (Ball.Position.x < Player.Position.x - Player.Weigth / 5 * 3 && Ball.Position.x >= Player.Position.x - Player.Weigth / 5 * 4)
-			{
-				Ball.Speed.x = -0.87;
-				Ball.Speed.y = -0.5;
-			}
-			if (Ball.Position.x < Player.Position.x - Player.Weigth / 5 * 4 && Ball.Position.x + Ball.radius >= Player.Position.x - Player.Weigth)
-			{
-				Ball.Speed.x = -0.97;
-				Ball.Speed.y = -0.26;
-			}
-
-			if (Ball.Position.x == Player.Position.x)
-			{
-				Ball.Speed.x = 0;
-				Ball.Speed.y = -1;
-			}
-		}
-		Ball.Position.x += Ball.Speed.x * Ball.NormalSpeed;
-		Ball.Position.y += Ball.Speed.y * Ball.NormalSpeed;
-
-	}
-
-	if (Ball.Position.y > Player.Position.y&& Bon.AdWall != TRUE)
-	{
-		if (Player.Live != 0)
-		{
-			Player.Live--;
-			Ball.State = FALSE;
-			Ball.Position.x = Player.Position.x;
-			Ball.Position.y = Player.Position.y - 20;
-		}
-		else
-			Game.GameOver = TRUE;
-	}
-		
-}
-
-void BlockBreak()
-{
-	int CountFalse = 0;
-	for (int i = 0; i < Block[0]->Lev.CountY; i++)
-	{
-		for (int j = 0; j < Block[0]->Lev.CountX; j++)
-		{
-			if (Ball.Position.y <= Block[i][j].Position.y + 2 * Ball.radius + 2 && Ball.Position.x <= Block[i][j].Position.x + 30 &&
-				Ball.Position.x >= Block[i][j].Position.x - 30 && Block[i][j].State != FALSE && Ball.Position.y >= Block[i][j].Position.y - 2 * Ball.radius - 2)
-			{
-				if (Block[i][j].Bonus != 0 && Block[i][j].Strength == 1)
-				{
-					Ball.Speed.y = -Ball.Speed.y;
-					Block[i][j].State = FALSE;
-					Block[i][j].BonusFall = TRUE;
-					return;
-				}
-				if (Block[i][j].Strength == 1)
-					Block[i][j].State = FALSE;
-				else
-					Block[i][j].Strength--;
-				Ball.Speed.y = -Ball.Speed.y;
-				return;
-			}
-			if (Ball.Position.y <= Block[i][j].Position.y + 13 && Block[i][j].State != FALSE && Ball.Position.y >= Block[i][j].Position.y - 10 &&
-				(Ball.Position.x + Ball.radius >= Block[i][j].Position.x - 30 && Ball.Position.x - Ball.radius <= Block[i][j].Position.x + 30))
-			{
-				if (Block[i][j].Bonus != 0 && Block[i][j].Strength == 1)
-				{
-					Ball.Speed.x = -Ball.Speed.x;
-					Block[i][j].State = FALSE;
-					Block[i][j].BonusFall = TRUE;
-					return;
-				}
-				if (Block[i][j].Strength == 1)
-					Block[i][j].State = FALSE;
-				else
-					Block[i][j].Strength--;
-				Ball.Speed.x = -Ball.Speed.x;
-				return;
-			}
-			if (Block[i][j].State == FALSE)
-			{
-				CountFalse++;
-			}
-		}
-	}
-	if (CountFalse == Block[0]->Lev.CountX * Block[0]->Lev.CountY)
-	{
-		NumberLevel++;
-		free(Block);
-		Block = Level(NumberLevel);
-		CountFalse = 0;
-		Ball.State = FALSE;
-		Ball.Position.x = Player.Position.x;
-		Ball.Position.y = Player.Position.y - 20;
-		if (NumberLevel == 4)
-			Game.GameWin = TRUE;
-	}
-}
-
-void MotionBonus()
-{
-	for (int i = 0; i < Block[0]->Lev.CountY; i++)
-	{
-		for (int j = 0; j < Block[0]->Lev.CountX; j++)
-		{
-			if (Block[i][j].BonusFall == TRUE)
-				Block[i][j].Position.y++;
-			if (Block[i][j].Position.y + 10 >= Player.Position.y && Block[i][j].Position.x + 25 >= Player.Position.x - Player.Weigth && Block[i][j].Position.x - 25 <= Player.Position.x + Player.Weigth)
-			{
-				Player.BonusTimer = 0;
-				Bonus();
-				Player.ActiveBonus = Block[i][j].Bonus;
-				Block[i][j].BonusFall = FALSE;
-				Player.BonusTimer = 300;
-				Block[i][j].Position.y -= 10;
-			}
-			if (Block[i][j].Position.y + 10 >= Player.Position.y)
-			{
-				Block[i][j].BonusFall = FALSE;
-				Block[i][j].Position.y -= 10;
-			}
-		}
-	}
-
-}
-
-//Бонусы:
-//0. Ничего
-//1. Ускорение мяча
-//2. Удлинение игрока
-//3. Дополнительная стенка
-//4. Пулемет
-void Bonus()
-{
-	switch (Player.ActiveBonus)
-	{
-	case 1:
-		if (Player.BonusTimer != 0)
-		{
-			Ball.NormalSpeed = 6;
-			Player.BonusTimer--;
-		}
-		else
-			Ball.NormalSpeed = 3;
-		break;
-	case 2:
-		if (Player.BonusTimer != 0)
-		{
-			Player.Weigth = 60;
-			Player.BonusTimer--;
-		}
-		else
-			Player.Weigth = 30;
-		break;
-	case 3:
-		if (Player.BonusTimer != 0)
-		{
-			Bon.AdWall = TRUE;
-			Player.BonusTimer--;
-		}
-		else
-			Bon.AdWall = FALSE;
-		break;
-	case 4:
-		if (Player.BonusTimer == 300)
-		{
-			Bon.Gun.Shot = malloc(sizeof(SHOT));
-			Bon.Gun.CountShot = 0;
-			Bon.Gun.State = TRUE;
-		}	
-		Player.BonusTimer--;
-		break;
-	default:
-		break;
-	}
-
-}
-
-void AdditionalWall()
-{
-	HPEN GreenPen;
-	GreenPen = CreatePen(PS_SOLID, 2, RGB(0, 255, 0));
-	SelectObject(memDC, GreenPen);
-	MoveToEx(memDC, 0, 420, NULL);
-	LineTo(memDC, 480, 420);
-	DeleteObject(GreenPen);
-}
-
-void Gun()
-{
-	if (Bon.Gun.CountShot >= 0 && (Player.BonusTimer == 299 || Player.BonusTimer == 239 || Player.BonusTimer == 179 || Player.BonusTimer == 119 || Player.BonusTimer == 59))
-	{
-		Bon.Gun.Shot = realloc(Bon.Gun.Shot, (Bon.Gun.CountShot + 1) * sizeof(SHOT));
-		Bon.Gun.Shot[Bon.Gun.CountShot].ShotPos.x = Player.Position.x;
-		Bon.Gun.Shot[Bon.Gun.CountShot].ShotPos.y = Player.Position.y - 10;
-		Bon.Gun.Shot[Bon.Gun.CountShot].State = TRUE;
-		Bon.Gun.CountShot++;
-	}
-	HPEN BluePen;
-	BluePen = CreatePen(PS_SOLID, 2, RGB(0, 0, 255));
-	SelectObject(memDC, BluePen);
-	for (int i = 0; i < Bon.Gun.CountShot; i++)
-	{
-		if (Bon.Gun.Shot[i].State != FALSE)
-		{
-			Bon.Gun.Shot[i].ShotPos.y--;
-			MoveToEx(memDC, Bon.Gun.Shot[i].ShotPos.x, Bon.Gun.Shot[i].ShotPos.y, NULL);
-			LineTo(memDC, Bon.Gun.Shot[i].ShotPos.x, Bon.Gun.Shot[i].ShotPos.y + 20);
-		}
-		
-	}
-	
-	for (int i = 0; i < Block[0]->Lev.CountY; i++)
-	{
-		for (int j = 0; j < Block[0]->Lev.CountX; j++)
-		{
-			for (int k = 0; k < Bon.Gun.CountShot; k++)
-				if (Bon.Gun.Shot[k].ShotPos.y <= Block[i][j].Position.y && Bon.Gun.Shot[k].ShotPos.x <= Block[i][j].Position.x + 25 && Bon.Gun.Shot[k].ShotPos.x >= Block[i][j].Position.x - 25 && (Block[i][j].State != FALSE || Block[i][j].State == FALSE && Bon.Gun.Shot[k].ShotPos.y < 5))
-				{
-					Block[i][j].State = FALSE;
-					Bon.Gun.Shot[k].State = FALSE;
-					
-				}
-		}
-	}
-
-	if (Bon.Gun.CountShot == 5 && Bon.Gun.Shot[1].State != TRUE && Bon.Gun.Shot[2].State != TRUE && Bon.Gun.Shot[3].State != TRUE && Bon.Gun.Shot[4].State != TRUE && Bon.Gun.Shot[5].State != TRUE)
-	{
-		Bon.Gun.State = FALSE;
-		free(Bon.Gun.Shot);
-	}
-
-	DeleteObject(BluePen);
-}
-
-void DrawMenu()
-{
-	HPEN BlackPen, RedPen;
-	HBRUSH BlueBrush, WhiteBrush;
-
-	BlackPen = CreatePen(PS_SOLID, 2, RGB(0, 0, 0));
-	RedPen = CreatePen(PS_SOLID, 3, RGB(255, 0, 0));
-	BlueBrush = CreateSolidBrush(RGB(0, 0, 255));
-	WhiteBrush = CreateSolidBrush(RGB(255, 255, 255));
-	
-	for (int i = 0; i < Menu.CountButton; i++)
-	{
-		if (Menu.CurButton == i)
-			SelectObject(memDC, RedPen);
-		else
-			SelectObject(memDC, BlackPen);
-		Rectangle(memDC, 90, i * 100 + 90, 390, i * 100 + 190);
-	}
-	BitBlt(hdc, 0, 0, 480, 480, memDC, 0, 0, SRCCOPY);
-	
-	hbMenuStart = (HBITMAP)LoadImage(NULL, TEXT("Start.bmp"), IMAGE_BITMAP, 300, 100, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-	SelectObject(memDC, hbMenuStart);
-	BitBlt(hdc, 91, 91, 297, 97, memDC, 0, 0, SRCCOPY);
-
-	hbMenuExit = (HBITMAP)LoadImage(NULL, TEXT("Exit.bmp"), IMAGE_BITMAP, 300, 97, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-	SelectObject(memDC, hbMenuExit);
-	BitBlt(hdc, 91, 191, 297, 197, memDC, 0, 0, SRCCOPY);
-
-	DeleteObject(BlueBrush);
-	DeleteObject(WhiteBrush);
-	DeleteObject(BlackPen);
-	DeleteObject(RedPen);
-	DeleteObject(hbMenuStart);
-	DeleteObject(hbMenuExit);
-	DeleteObject(memBM);
-	DeleteDC(memDC);
-
-}
-
-void Win()
-{
-	FillRect(memDC, &ps.rcPaint, (HBRUSH)RGB(0, 0, 0));
-	BitBlt(hdc, 0, 0, 480, 480, memDC, 0, 0, SRCCOPY);
-	hbWin = (HBITMAP)LoadImage(NULL, TEXT("Win.bmp"), IMAGE_BITMAP, 465, 100, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-	SelectObject(memDC, hbWin);
-	BitBlt(hdc, 0, 100, 480, 200, memDC, 0, 0, SRCCOPY);
-	KillTimer(hWnd, 1);
-}
-
-void GameOver()
-{
-	FillRect(memDC, &ps.rcPaint, (HBRUSH)RGB(0, 0, 0));
-	BitBlt(hdc, 0, 0, 480, 480, memDC, 0, 0, SRCCOPY);
-	hbGameOver = (HBITMAP)LoadImage(NULL, TEXT("GameOver.bmp"), IMAGE_BITMAP, 465, 100, LR_LOADFROMFILE | LR_CREATEDIBSECTION);
-	SelectObject(memDC, hbGameOver);
-	BitBlt(hdc, 0, 100, 480, 200, memDC, 0, 0, SRCCOPY);
-	KillTimer(hWnd, 1);
 }
 
 void Scene()
@@ -426,7 +63,7 @@ void Scene()
 	FillRect(memDC, &ps.rcPaint, RGB(0, 0, 0));
 
 
-	if (Game.GameStart == TRUE)
+	if (GameState == 1)
 	{
 		HPEN hBlackPen;
 		hBlackPen = CreatePen(BS_SOLID, 1, RGB(0, 0, 0));
@@ -436,17 +73,17 @@ void Scene()
 		hRedBrush = CreateSolidBrush(RGB(255, 0, 0));
 		hWhiteBrush = CreateSolidBrush(RGB(255, 255, 255));
 		hGreenBrush = CreateSolidBrush(RGB(0, 255, 0));
-		for (int i = 0; i < Block[0]->Lev.CountY; i++)
+		for (int i = 0; i < sc.Block[0]->Lev.CountY; i++)
 		{
-			for (int j = 0; j < Block[0]->Lev.CountX; j++)
+			for (int j = 0; j < sc.Block[0]->Lev.CountX; j++)
 			{
-				if (Block[i][j].Strength == 1)
+				if (sc.Block[i][j].Strength == 1)
 					SelectObject(memDC, hRedBrush);
 				else
 					SelectObject(memDC, hGreenBrush);
 
-				if (Block[i][j].State != FALSE || Block[i][j].BonusFall == TRUE)
-					Rectangle(memDC, (int)Block[i][j].Position.x - 25, (int)Block[i][j].Position.y - 10, (int)Block[i][j].Position.x + 25, (int)Block[i][j].Position.y + 10);
+				if (sc.Block[i][j].State != FALSE || sc.Block[i][j].BonusFall == TRUE)
+					Rectangle(memDC, (int)sc.Block[i][j].Position.x - 25, (int)sc.Block[i][j].Position.y - 10, (int)sc.Block[i][j].Position.x + 25, (int)sc.Block[i][j].Position.y + 10);
 
 
 			}
@@ -454,46 +91,45 @@ void Scene()
 
 
 		SelectObject(memDC, hWhiteBrush);
-		Rectangle(memDC, (int)Player.Position.x - Player.Weigth, (int)Player.Position.y - 10, (int)Player.Position.x + Player.Weigth, (int)Player.Position.y + 10);
-		Ellipse(memDC, (int)Ball.Position.x - 10, (int)Ball.Position.y - 10, (int)Ball.Position.x + 10, (int)Ball.Position.y + 10);
-		if (Bon.AdWall == TRUE)
-			AdditionalWall();
-		if (Bon.Gun.State == TRUE)
+		Rectangle(memDC, (int)sc.Player.Position.x - sc.Player.Weigth, (int)sc.Player.Position.y - 10, (int)sc.Player.Position.x + sc.Player.Weigth, (int)sc.Player.Position.y + 10);
+		Ellipse(memDC, (int)sc.Ball.Position.x - 10, (int)sc.Ball.Position.y - 10, (int)sc.Ball.Position.x + 10, (int)sc.Ball.Position.y + 10);
+		if (sc.Bon.AdWall == TRUE)
+			AdditionalWall(memDC);
+		if (sc.Bon.Gun.State == TRUE)
 		{
-			Gun();
+			sc = Gun(memDC, sc);
 		}
 		TextOutA(memDC, 10, 400, "Live:", 5);
 		char c[3];
-		_itoa(Player.Live, c, 10);
+		_itoa(sc.Player.Live, c, 10);
 		TextOutA(memDC, 45, 400, (LPCSTR)c, 1);
 
-		MotionBonus();
-		Motion();
-		BlockBreak();
-		Bonus();
+		sc = MotionBonus(sc, GameState);
+		sc = Motion(sc, GameState);
+		sc = BlockBreak(sc, GameState, NumberLevel);
+		sc = Bonus(sc);
 
 		DeleteObject(hWhiteBrush);
 		DeleteObject(hRedBrush);
 		DeleteObject(hGreenBrush);
-		DeleteObject(hbGameOver);
 		DeleteObject(hBlackPen);
 	}
 	else
 	{
-		DrawMenu();
+		DrawMenu(hdc, memDC, memBM, sc);
 		return;
 	}
 
 	BitBlt(hdc, 0, 0, 480, 480, memDC, 0, 0, SRCCOPY);
 
-	if (Game.GameOver == TRUE)
+	if (GameState == 2)
 	{
-		GameOver();
+		GameOv(hdc, memDC, memBM, ps, hWnd);
 	}
 
-	if (Game.GameWin == TRUE)
+	if (GameState == 3)
 	{
-		Win();
+		Win(hdc, memDC, memBM, ps, hWnd);
 	}
 
 	SelectObject(memDC, oldBMP);
@@ -530,50 +166,50 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 	{
 		click = 0;
-		if (LOWORD(lParam) >= Player.Position.x - 30 && LOWORD(lParam) <= Player.Position.x + 30)
-			Ball.State = TRUE;
+		if (LOWORD(lParam) >= sc.Player.Position.x - 30 && LOWORD(lParam) <= sc.Player.Position.x + 30)
+			sc.Ball.State = TRUE;
 		break;
 	}
 	case WM_MOUSEMOVE:
 	{
-		if (click == 1 && LOWORD(lParam) >= Player.Position.x - 30 && LOWORD(lParam) <= Player.Position.x + 30 && LOWORD(lParam) < 435 && LOWORD(lParam) > 29)
+		if (click == 1 && LOWORD(lParam) >= sc.Player.Position.x - 30 && LOWORD(lParam) <= sc.Player.Position.x + 30 && LOWORD(lParam) < 435 && LOWORD(lParam) > 29)
 		{
-			Player.Position.x = LOWORD(lParam);
+			sc.Player.Position.x = LOWORD(lParam);
 		}
 		break;
 	}
 	case WM_KEYDOWN:
 	{
-		if (Game.GameStart == FALSE)
+		if (GameState != 1)
 		{
 			switch (wParam)
 			{
 			case VK_DOWN:
 			{
-				if (Menu.CurButton < Menu.CountButton - 1)
+				if (sc.Menu.CurButton < sc.Menu.CountButton - 1)
 				{
-					Menu.CurButton++;
+					sc.Menu.CurButton++;
 					InvalidateRect(hWnd, NULL, FALSE);
 				}
-					
+
 				break;
 			}
 			case VK_UP:
 			{
-				if (Menu.CurButton > 0)
+				if (sc.Menu.CurButton > 0)
 				{
-					Menu.CurButton--;
+					sc.Menu.CurButton--;
 					InvalidateRect(hWnd, NULL, FALSE);
 				}
-					
+
 				break;
 			}
 			case VK_RETURN:
 			{
-				switch (Menu.CurButton)
+				switch (sc.Menu.CurButton)
 				{
 				case 0:
-					Game.GameStart = TRUE;
+					GameState = 1;
 					SetTimer(hWnd, 1, 1, NULL);
 					break;
 				case 1:
@@ -597,7 +233,7 @@ int createMyWindow(HINSTANCE hInstance, int nCmdShow)
 {
 	registerMyClass(hInstance);
 
-	hWnd = CreateWindow(szClassName, L"task 8", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 480, 480, NULL, NULL, hInstance, NULL);
+	hWnd = CreateWindow(szClassName, "Arcanoid", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 480, 480, NULL, NULL, hInstance, NULL);
 
 	if (!hWnd) { return 0; }
 	ShowWindow(hWnd, nCmdShow);
